@@ -1,0 +1,16 @@
+*.py
+Makefile
+main_RAGS_tester
+test_scratch*
+Utilities.h
+test_config/*
+build/CMakeFiles/*
+build/logs/*
+build/plots/*
+build/config_files/*
+build/test_config/*
+build/test_path_comparisons*
+build/CMakeCache.txt
+build/cmake_install.cmake
+build/collated_statistics.txt
+build/Makefile
