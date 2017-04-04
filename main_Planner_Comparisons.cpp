@@ -1,5 +1,5 @@
 #ifndef PTHRESH
-#define PTHRESH 0.70
+#define PTHRESH 0.65
 #endif
 
 enum searchType {ASTAR, DIJKSTRA} ; // BREADTH, DEPTH
@@ -44,9 +44,9 @@ typedef unsigned long int ULONG ;
 #include "GraphGeneration.h"
 
 int main(){
-  int numGraphs = 100 ;
-  int trialNum = 0 ;
-  int varMax = 20 ;
+  int numGraphs = 64 ;
+  int trialNum = 63 ;
+  int varMax = 10 ;
 	
   int buffSize = 100 ;
   char fileDir[buffSize] ;
@@ -112,7 +112,7 @@ int main(){
   }
   // END: Generate new graphs **********************************************************************
   
-  while (trialNum < numGraphs){ 
+  while (trialNum < numGraphs){
     // Initialising graph parameters ***************************************************************
     // Load vertex locations from txt file
     cout << "Reading vertices from file: " ;
@@ -153,53 +153,26 @@ int main(){
       continue ;
     }
     vector<edge> edges ;
-    vector<long int> e ;
+    vector<double> e ;
+    vector< vector<double> > cost_distributions ;
+    vector<double> c(2) ;
     while (getline(edgesFile,line))
     {
 	    stringstream lineStream(line) ;
 	    string cell ;
 	    e.clear() ;
 	    while (getline(lineStream,cell,','))
-		    e.push_back(atol(cell.c_str())) ;
-	    edge temp(e[0],e[1]) ;
+		    e.push_back(atof(cell.c_str())) ;
+	    edge temp((int)e[0],(int)e[1]) ;
+	    c[0] = e[2] ;
+	    c[1] = e[3] ;
 	    edges.push_back(temp) ;
+	    cost_distributions.push_back(c) ;
     }
     cout << "complete.\n" ;
 
-    // Randomly generate edge cost distributions
-    cout << "Generating edge cost distribution parameter values..." ;
-    // Write to txt file
-    stringstream cdFileName ;
-    cdFileName << fileDir << "/cost_distributions" << trialNum << ".txt" ;
-    ofstream costsFile ;
-    costsFile.open(cdFileName.str().c_str()) ;
-    
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
-    std::uniform_real_distribution<double> mean_distribution(0.0,100.0);
-    std::uniform_real_distribution<double> std_distribution(0.0,10.0);
-    
-    vector< vector<double> > cost_distributions ;
-    for (ULONG i = 0; i < edges.size(); i++){
-      vector<double> cost ;
-      double diffx = vertices[edges[i].first].x - vertices[edges[i].second].x ;
-      double diffy = vertices[edges[i].first].y - vertices[edges[i].second].y ;
-      double dist = sqrt(pow(diffx,2)+pow(diffy,2)) ;
-      bool repeat = true ;
-      while (repeat){
-        cost.clear() ;
-        cost.push_back(mean_distribution(generator)) ;
-        cost.push_back(std_distribution(generator)) ;
-        if (cost[1] < cost[0]){ // do not allow std > mean
-          repeat = false ;
-          cost[0] += dist ;
-        }
-      }
-      cost_distributions.push_back(cost) ;
-      costsFile << cost[0] << "," << cost[1] << "\n" ;
-    }
-    costsFile.close() ;
-    cout << "complete.\n" ;
     // END: Initialising graph parameters **********************************************************
     
     // START: Execute planners *********************************************************************

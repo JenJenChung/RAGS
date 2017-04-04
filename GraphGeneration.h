@@ -13,7 +13,7 @@ double EuclideanDistance(vector<double> v1, vector<double> v2)
 // Connect vertices within specified radius
 void RadiusConnect(char * cDir, int graphNum, vector< vector<double> > vertices, double radius, int meanMax, int varMax)
 {
-	srand(time(NULL));
+	srand(graphNum+1);
 	vector< vector<double> > edges(pow(vertices.size(),2), vector<double>(4)) ;
 	ULONG k = 0 ;
 	
@@ -51,7 +51,7 @@ void RadiusConnect(char * cDir, int graphNum, vector< vector<double> > vertices,
 }
 
 void GenerateVertices(char * cDir, int graphNum, int numVerts, double x, double y, double &radius, vector< vector<double> > &vertices){
-	srand (time(NULL));
+	srand (graphNum+1);
 	double vertx, verty;
 	int xx = x;
 	int yy = y;

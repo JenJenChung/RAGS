@@ -9,7 +9,7 @@ tt = 0:99 ;
 plotData = input('Do you wish to view and print box plot data? ','s') ;
 if (strcmpi(plotData,'y'))
     fn = 'times' ;
-    for t = 28 % trial number
+    for t = 0:16 % trial number
         close all ;
         for k = 1:numel(p)
             fileDir = sprintf('logs/maxVar_%d/pThresh_0.65',p(k)) ;
@@ -77,7 +77,7 @@ if (strcmpi(costStats,'y'))
     quartiles = zeros(numel(tt),16) ;
     for k = 1:numel(p)
         for t = tt % trial number
-            fileDir = sprintf('logs/maxVar_%d/pThresh_0.50',p(k)) ;
+            fileDir = sprintf('logs/maxVar_%d/pThresh_0.60',p(k)) ;
             data0 = load(sprintf('%s/path_costs%d.txt',fileDir,t)) ;
             data = zeros(size(data0)) ;
             data(:,1) = data0(:,1) ;
@@ -85,7 +85,7 @@ if (strcmpi(costStats,'y'))
             data(:,4) = data0(:,2) ;
             data(:,5) = data0(:,5) ;
             diffCost = zeros(size(data)) ;
-
+            
             for i = 1:size(data,1)
                 for j = 1:size(data,2)
                     diffCost(i,j) = (data(i,j) - data(i,end))./data(i,end)*100 ;
@@ -100,7 +100,7 @@ if (strcmpi(costStats,'y'))
             q = quantile(diffCost,3) ;
             for i = 1:4
                 quartiles(t+1,(i-1)*4+(1:3)) = q(:,i)' ;
-            quartiles(t+1,(i-1)*4+4) = max(diffCost(:,i)) ;
+                quartiles(t+1,(i-1)*4+4) = max(diffCost(:,i)) ;
             end
         end
         fprintf('Max variance: %.2f\n',p(k)) ;
@@ -257,8 +257,8 @@ if (strcmpi(compTime,'y'))
         end
         pect(pp(i)) = errorbar(pT,pCmean(:,pp(i)),pCmean(:,pp(i))-pCL(:,pp(i)),pCU(:,pp(i))-pCmean(:,pp(i)),'color',c(pp(i),:),'linestyle','none') ;
     end
-    set(hax(1),'xlim',[0.4975 0.7525],'ylim',[0 0.25],'ycolor','k') ;
-    set(hax(2),'xlim',[0.4975 0.7525],'ylim',[0 11.5],'ycolor','k') ;
+    set(hax(1),'xlim',[0.4975 0.7525],'ylim',[0 .1],'ycolor','k') ;
+    set(hax(2),'xlim',[0.4975 0.7525],'ylim',[0 5],'ycolor','k') ;
     legend(pct,leg_string,'interpreter','latex','location','northwest','fontsize',fs) ;
     set(hax(1),'fontsize',fs,'fontname',fn)
     set(hax(2),'fontsize',fs,'fontname',fn)
@@ -276,5 +276,79 @@ if (strcmpi(compTime,'y'))
             set(gcf,'paperposition',[-0.5 -0.2 8 6])
             set(gcf,'papersize',[7.2,5.65])
             print(gcf,sprintf('plots/%s',s),'-dpdf','-r0') ;
+    end
+end
+
+%% Plot graph and ND set
+close all ;
+mV = 20 ;
+t = 0 ;
+fileDir = sprintf('logs/maxVar_%d/pThresh_0.70',mV) ;
+ND_set = load(sprintf('%s/ND_set%d.txt',fileDir,t)) ;
+RAGS = load(sprintf('%s/RAGS_path%d.txt',fileDir,t)) ;
+edges = load(sprintf('config_files/maxVar_%d/edges%d.txt',mV,t)) ;
+verts = load(sprintf('config_files/maxVar_%d/vertices%d.txt',mV,t)) ;
+maxV = max(edges(:,4)) ;
+g = input('Do you wish to plot graph? ','s') ;
+if (strcmpi(g,'y'))
+    figure ;
+    hold on ;
+    axis equal ;
+    pe = zeros(size(edges,1),1) ;
+    cm = colormap ;
+    for i = 1:size(edges,1)
+        cc = (edges(i,4)/maxV)*size(cm,1) ;
+        fcm = max(1,floor(cc)) ;
+        ccm = max(1,ceil(cc)) ;
+        dc = 1-max(0,cc-fcm) ;
+        c = dc*cm(fcm,:) + (1-dc)*cm(ccm,:) ;
+        v = [verts(edges(i,1)+1,:);verts(edges(i,2)+1,:)] ;
+        pe(i) = plot(v(:,1),v(:,2),'-','color',c) ;
+    end
+    axis tight ;
+    set(gca,'visible','off') ;
+    s = 'graph_full.pdf' ;
+    sp = input(sprintf('Do you wish to print this figure to pdf? (Figure will be saved as ''%s'') ',s),'s') ;
+    switch lower(sp)
+        case 'y'
+            export_fig(gcf,sprintf('plots/%s',s),'-trans') ;
+    end
+end
+
+nd = input('Do you wish to plot nd-set? ','s') ;
+if (strcmpi(nd,'y'))
+    figure ;
+    hold on ;
+    axis equal ;
+    pe = zeros(size(edges,1),1) ;
+    cm = colormap ;
+    for i = 1:size(edges,1)
+        cc = (edges(i,4)/maxV)*size(cm,1) ;
+        fcm = max(1,floor(cc)) ;
+        ccm = max(1,ceil(cc)) ;
+        dc = 1-max(0,cc-fcm) ;
+        c = dc*cm(fcm,:) + (1-dc)*cm(ccm,:) ;
+        v = [verts(edges(i,1)+1,:);verts(edges(i,2)+1,:)] ;
+        pe(i) = plot(v(:,1),v(:,2),'-','color',c) ;
+    end
+    axis tight ;
+    set(gca,'visible','off') ;
+    pnd = zeros(size(ND_set,1)-1,1) ;
+    for i = 1:size(ND_set,1)-1
+        if (ND_set(i,1) == 100 && ND_set(i,2) == 100)
+            continue ;
+        else
+            pnd(i) = plot(ND_set(i:i+1,1),ND_set(i:i+1,2),'r-','linewidth',2) ;
+        end
+    end
+    prags = zeros(size(RAGS,1)-1,1) ;
+    for i = 1:size(RAGS,1)-1
+        prags(i) = plot(RAGS(i:i+1,1),RAGS(i:i+1,2),'k-','linewidth',2) ;
+    end
+    s = 'graph_full_nd_set.pdf' ;
+    sp = input(sprintf('Do you wish to print this figure to pdf? (Figure will be saved as ''%s'') ',s),'s') ;
+    switch lower(sp)
+        case 'y'
+            export_fig(gcf,sprintf('plots/%s',s),'-trans') ;
     end
 end

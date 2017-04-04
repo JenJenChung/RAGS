@@ -14,3 +14,6 @@ build/CMakeCache.txt
 build/cmake_install.cmake
 build/collated_statistics.txt
 build/Makefile
+build/config_files_broken/*
+build/test_ND_set
+
