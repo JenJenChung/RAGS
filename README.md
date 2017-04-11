@@ -7,8 +7,8 @@ This code release is in conjunction with our paper submission to the IJRR specia
 
 Usage:
   - from the command line, navigate to the build directory and run
-    cmake ..
-    make
-    ./test_path_comparisons
+    - cmake ..
+    - make
+    - ./test_path_comparisons
   - RAGS domination threshold is determined by the value of PTHRESH, which is defined in main_Planner_Comparisons.cpp
   - toggle values on lines 63 and 64 of main_Planner_Comparisons.cpp to generate new random graphs or read in stored configurations
