@@ -67,7 +67,9 @@ class Node
 		double GetHeuristic() const {return itsHeuristic ;}
 		void SetHeuristic(double h) {itsHeuristic = h ;}
 		double GetMeanCTG() const {return itsMeanCTG ;}
+		void SetMeanCTG(double mCTG){itsMeanCTG = mCTG ;}
 		double GetVarCTG() const {return itsVarCTG ;}
+		void SetVarCTG(double vCTG){itsVarCTG = vCTG ;}
 		
 		void DisplayPath() ;
 		Node * ReverseList(Node * itsChild) ;

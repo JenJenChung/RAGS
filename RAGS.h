@@ -2,6 +2,7 @@
 #define RAGS_H_
 
 #include <iostream> // std::cout
+#include <fstream> // std::fstream::fstream
 #include <vector> // std::vector
 #include <algorithm> // std::sort
 #include <utility> // std::pair
@@ -18,6 +19,8 @@ using std::cout ;
 using std::vector ;
 using std::sort ;
 using std::pair ;
+using std::ofstream ;
+using std::ifstream ;
 
 const double PI = 3.14159265358979323846264338328 ;
 
@@ -58,6 +61,7 @@ class RAGS
     Graph * GetGraph() const {return itsGraph ;}
     Vertex * GetVert() const {return itsVert ;}
     
+    void SetInitialVert(XY start) ;
     void SetInitialVert(Vertex * start) ;
     bool InitialiseNDSet(XY start, XY goal, XY &s) ;
     XY SearchGraph(XY start, XY goal, vector<double> &costs) ;
@@ -65,6 +69,9 @@ class RAGS
     int GetEdgeIndex(XY start, XY goal) ;
     ULONG GetNDSetSize(){return itsNDSet.size() ;}
     vector<Node *> GetNDSet(){return itsNDSet ;}
+    
+    void NDSetWriteBinary(ofstream &fs) ;
+    void NDSetReadBinary(ifstream &fs) ;
     
   private:
   	vector<XY> itsLocations ;
@@ -84,7 +91,29 @@ class RAGS
     static double ComputeImprovementProbability(Vertex * A, Vertex * B) ;
     static vector<double> linspace(double a, double b, int n) ;
     static bool GreedyComparison(Vertex * A, Vertex * B) ;
+    
+    void NodeWriteBinary(ofstream &fs, Node * n, int nodeNum) ;
+    ULONG GetVertexIndex(Vertex * v) ;
+    Vertex * GetVertex(ULONG i) ;
 } ;
+
+void RAGS::SetInitialVert(XY start){
+	Vertex ** allVerts = itsGraph->GetVertices() ;
+  Vertex * sVert ;
+  bool sFound = false ;
+  for (ULONG i = 0; i < itsGraph->GetNumVertices(); i++)
+  {
+    if ( start.x == allVerts[i]->GetX() && start.y == allVerts[i]->GetY() ){
+      sVert = allVerts[i] ;
+      sFound = true ;
+    }
+  }
+  if (!sFound){
+  	printf("ERROR: start vertex (%f,%f) not found. Exiting.\n",start.x,start.y) ;
+  	exit(1) ;
+  }
+  return SetInitialVert(sVert) ;
+}
 
 void RAGS::SetInitialVert(Vertex * start)
 {
@@ -187,7 +216,7 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &costs)
     if (!pFound)
       return s ;
   }
-    
+  
   // Flag and return if current vertex does not match start vertex
   if (!(itsVert == start)){
     printf("\nERROR: input start vertex (%f,%f) does not match stored vertex (%f,%f)", 
@@ -211,9 +240,10 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &costs)
 			  break ;
 		  }
 	  }
-	  if (newVert)
+	  if (newVert){
 		  nextVerts.push_back(newNodes[i]->GetParent()->GetVertex()) ;
-		  AssignCTC(itsVert, newNodes[i]->GetParent()->GetVertex(), costs) ;
+	    AssignCTC(itsVert, newNodes[i]->GetParent()->GetVertex(), costs) ;
+    }
   }
   
   // Identify next vertex path nodes
@@ -326,7 +356,7 @@ XY RAGS::SearchGraphGreedy(Vertex * start, Vertex * goal, vector<double> &costs)
 	  }
 	  if (newVert){
 		  nextVerts.push_back(newNodes[i]->GetParent()->GetVertex()) ;
-		  AssignCTC(itsVert, newNodes[i]->GetParent()->GetVertex(), costs) ;
+	    AssignCTC(itsVert, newNodes[i]->GetParent()->GetVertex(), costs) ;
 	  }
   }
   
@@ -429,6 +459,134 @@ int RAGS::GetEdgeIndex(XY start, XY goal)
 	}
 	cout << "Error: Did not find current edge index. Exiting.\n" ;
 	exit(1) ;
+}
+
+// Read and write ND to binary file
+void RAGS::NDSetWriteBinary(ofstream &fs){
+  int numPaths = itsNDSet.size() ;
+  cout << "Number of paths to be written to file: " << numPaths << "\n" ;
+  char * p_numPaths = reinterpret_cast<char *>(&numPaths) ;
+  fs.write(p_numPaths,sizeof(numPaths)) ; // record size of non-dominated set
+  for (size_t i = 0; i < itsNDSet.size(); i++)
+    NodeWriteBinary(fs,itsNDSet[i],0) ;
+}
+
+void RAGS::NodeWriteBinary(ofstream &fs, Node * n, int nodeNum){
+  if (n->GetParent()) // write from goal node first
+    NodeWriteBinary(fs, n->GetParent(), nodeNum+1) ;
+  
+  // Get vertex index
+  ULONG vInd = GetVertexIndex(n->GetVertex()) ;
+  
+  // Set parent index
+  int pInd ;
+  if (!n->GetParent())
+    pInd = -1 ; // goal node
+  else
+    pInd = nodeNum+1 ;
+  
+  // Get all member variable sizes
+  double mC = n->GetMeanCost() ;
+  double vC = n->GetVarCost() ;
+  ULONG d = n->GetDepth() ;
+  double h = n->GetHeuristic() ;
+  double mCTG = n->GetMeanCTG() ;
+  double vCTG = n->GetVarCTG() ;
+  
+  // Convert all to const char *
+  char * p_nodeNum = reinterpret_cast<char *>(&nodeNum) ;
+  char * p_vInd = reinterpret_cast<char *>(&vInd) ;
+  char * p_pInd = reinterpret_cast<char *>(&pInd) ;
+  char * p_mC = reinterpret_cast<char *>(&mC) ;
+  char * p_vC = reinterpret_cast<char *>(&vC) ;
+  char * p_d = reinterpret_cast<char *>(&d) ;
+  char * p_h = reinterpret_cast<char *>(&h) ;
+  char * p_mCTG = reinterpret_cast<char *>(&mCTG) ;
+  char * p_vCTG = reinterpret_cast<char *>(&vCTG) ;
+  
+  // Write all variables to binary
+  fs.write(p_nodeNum,sizeof(nodeNum)) ;
+  fs.write(p_vInd,sizeof(vInd)) ;
+  fs.write(p_pInd,sizeof(pInd)) ;
+  fs.write(p_mC,sizeof(mC)) ;
+  fs.write(p_vC,sizeof(vC)) ;
+  fs.write(p_d,sizeof(d)) ;
+  fs.write(p_h,sizeof(h)) ;
+  fs.write(p_mCTG,sizeof(mCTG)) ;
+  fs.write(p_vCTG,sizeof(vCTG)) ;
+}
+
+void RAGS::NDSetReadBinary(ifstream &fs){
+  int numPaths ;
+  char * p_numPaths = reinterpret_cast<char *>(&numPaths) ;
+  fs.read(p_numPaths,sizeof(numPaths)) ;
+  
+  int curPath = 0 ;
+  while (curPath < numPaths){
+    
+    Node * pNode ; // track parent node
+    while (true){
+      int nodeNum ;
+      char * p_nodeNum = reinterpret_cast<char *>(&nodeNum) ;
+      fs.read(p_nodeNum,sizeof(nodeNum)) ; // current node number
+  
+      ULONG vInd ;
+      char * p_vInd = reinterpret_cast<char *>(&vInd) ;
+      fs.read(p_vInd,sizeof(vInd)) ;
+      Node * n = new Node(GetVertex(vInd)) ; // Initialise node at vertex
+      int pInd ;
+      char * p_pInd = reinterpret_cast<char *>(&pInd) ;
+      fs.read(p_pInd,sizeof(pInd)) ;
+      if (pInd < 0) // goal node
+        pNode = 0 ; // reset parent node
+      
+      // Allocate memory
+      double mC, vC, mCTG, vCTG, h ;
+      ULONG d  ;
+      char * p_mC = reinterpret_cast<char *>(&mC) ;
+      char * p_vC = reinterpret_cast<char *>(&vC) ;
+      char * p_d = reinterpret_cast<char *>(&d) ;
+      char * p_h = reinterpret_cast<char *>(&h) ;
+      char * p_mCTG = reinterpret_cast<char *>(&mCTG) ;
+      char * p_vCTG = reinterpret_cast<char *>(&vCTG) ;
+      fs.read(p_mC,sizeof(mC)) ;
+      fs.read(p_vC,sizeof(vC)) ;
+      fs.read(p_d,sizeof(d)) ;
+      fs.read(p_h,sizeof(h)) ;
+      fs.read(p_mCTG,sizeof(mCTG)) ;
+      fs.read(p_vCTG,sizeof(vCTG)) ;
+      
+      n->SetMeanCost(mC) ;
+      n->SetVarCost(vC) ;
+      n->SetDepth(d) ;
+      n->SetHeuristic(h) ;
+      n->SetMeanCTG(mCTG) ;
+      n->SetVarCTG(vCTG) ;
+      n->SetParent(pNode) ;
+      
+      pNode = n ; // assign as new parent node
+      if (nodeNum == 0){
+        itsNDSet.push_back(n) ;
+        curPath++ ;
+        break ;
+      }
+    }
+  }
+}
+
+ULONG RAGS::GetVertexIndex(Vertex * v){
+  Vertex ** vAll = itsGraph->GetVertices() ;
+  ULONG numV = itsGraph->GetNumVertices() ;
+  for (ULONG i = 0; i < numV; i++)
+    if (v == vAll[i])
+      return i ;
+  std::cerr << "ERROR: Vertex not found! Exiting.\n" ;
+  return 0 ;
+}
+
+Vertex * RAGS::GetVertex(ULONG i){
+  Vertex ** vAll = itsGraph->GetVertices() ;
+  return vAll[i] ;
 }
 
 // Function to compare vertices: returns TRUE if vertex A is better than vertex B

@@ -1,5 +1,5 @@
 #ifndef PTHRESH
-#define PTHRESH 0.70
+#define PTHRESH 0.60
 #endif
 
 enum searchType {ASTAR, DIJKSTRA} ; // BREADTH, DEPTH
@@ -120,8 +120,8 @@ int main(){
   
   // START: Compute RAGS ND-set ********************************************************************
   // Define planning task
-  XY start = vertices[0] ; // with random 100 graph: vertices0.txt, edges0.txt
-  XY goal = vertices[99] ; // with random 100 graph: vertices0.txt, edges0.txt
+  XY start = vertices[0] ; // with random graph: vertices0.txt, edges0.txt
+  XY goal = vertices[vertices.size()-1] ; // with random graph: vertices0.txt, edges0.txt
   
   // Write ND set to file
   stringstream ndFileName ;
@@ -146,6 +146,22 @@ int main(){
     }
   }
   
+  ndSetFile.close() ;
+  
+//  // Display ND set
+//  for (size_t i = 0; i < testRAGS->GetNDSetSize(); i++)
+//    testRAGS->GetNDSet()[i]->DisplayPath() ;
+  
+  // Write ND set to binary file
+  cout << "Writing ND-set to binaries...\n" ;
+  stringstream ndBinFileName ;
+  ndBinFileName << fileDir << "/ND_set" << trialNum << ".dat" ;
+  ofstream binaryNDSetFile ;
+  binaryNDSetFile.open(ndBinFileName.str().c_str(), std::ios::out | std::ios::binary) ;
+  testRAGS->NDSetWriteBinary(binaryNDSetFile) ;
+  binaryNDSetFile.close() ;
+  cout << "Writing complete.\n" ;
+  
   // Query for true edge costs and write to txt file
   vector<double> true_costs ;
   for (ULONG i = 0; i < edges.size(); i++){
@@ -160,6 +176,7 @@ int main(){
   }
   
   // Write RAGS path file
+  cout << "Executing RAGS path on original RAGS object...\n" ;
   stringstream pFileName ;
   pFileName << fileDir << "/RAGS_path" << trialNum << ".txt" ;
   ofstream pFile ;
@@ -171,6 +188,7 @@ int main(){
   // Execute RAGS path
   while (true){
     pFile << curLoc.x << "," << curLoc.y << "\n" ;
+    cout << "Current vertex: (" << curLoc.x << "," << curLoc.y << ")\n" ;
     if (curLoc == goal){
       break ;
     }
@@ -186,8 +204,60 @@ int main(){
     
     curLoc = nextLoc ;
   }
+  
+  pFile.close() ;
 
   delete testRAGS ;
+  
+  // Create new RAGS object and read in stored ND set
+  cout << "Reading in ND-set to new RAGS object from binary files...\n" ;
+  std::ifstream readNDSetFile ;
+  readNDSetFile.open(ndBinFileName.str().c_str(), std::ios::in | std::ios::binary) ;
+  
+  RAGS * newRAGS = new RAGS(vertices, edges, cost_distributions) ;
+  newRAGS->NDSetReadBinary(readNDSetFile) ; // read in ND set from binary file and write to itsNDSet
+  readNDSetFile.close() ;
+  cout << "Reading complete.\n" ;
+  
+  // Write new RAGS path file
+  cout << "Executing RAGS path on new RAGS object...\n" ;
+  stringstream npFileName ;
+  npFileName << fileDir << "/RAGS_path_new" << trialNum << ".txt" ;
+  ofstream npFile ;
+  npFile.open(npFileName.str().c_str(),std::ifstream::app) ;
+  
+//  // Display ND set
+//  for (size_t i = 0; i < newRAGS->GetNDSetSize(); i++)
+//    newRAGS->GetNDSet()[i]->DisplayPath() ;
+  
+  // Initialise current location
+  curLoc = start ;
+  newRAGS->SetInitialVert(start) ;
+  
+  // Execute RAGS path
+  while (true){
+    npFile << curLoc.x << "," << curLoc.y << "\n" ;
+    cout << "Current vertex: (" << curLoc.x << "," << curLoc.y << ")\n" ;
+    if (curLoc == goal){
+      break ;
+    }
+    
+    // Execute RAGS transition
+    XY nextLoc = newRAGS->SearchGraph(curLoc,goal,true_costs) ;
+    
+    // Check transition was successful
+    if (curLoc == nextLoc){
+      cout << "Transition unsuccessful! Graph #" << trialNum << "\n" ;
+      exit(1) ;
+    }
+    
+    curLoc = nextLoc ;
+  }
+  
+  npFile.close() ;
+
+  delete newRAGS ;
+  
 
   // END: Compute RAGS ND-set **********************************************************************
     

@@ -16,4 +16,4 @@ build/collated_statistics.txt
 build/Makefile
 build/config_files_broken/*
 build/test_ND_set
-
+build/test_ND_set_binaries

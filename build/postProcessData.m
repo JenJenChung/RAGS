@@ -169,7 +169,7 @@ if (strcmpi(costStats,'y'))
             q = quantile(diffCost,3) ;
             for i = 1:4
                 quartiles(t+1,(i-1)*4+(1:3)) = q(:,i)' ;
-            quartiles(t+1,(i-1)*4+4) = max(diffCost(:,i)) ;
+                quartiles(t+1,(i-1)*4+4) = max(diffCost(:,i)) ;
             end
         end
         for i = 1:4
@@ -188,9 +188,10 @@ if (strcmpi(costStats,'y'))
     oF = 0.005 ;
     offset = -(1.5*oF):oF:(1.5*oF) ;
     leg_string = {'RAGS','Na\"{i}ve A*','Sampled A*','Greedy'} ;
+    lw = [3,2,3,2] ;
     for i = 1:4
         patch_PQy = [pQ(1,:,i),fliplr(pQ(3,:,i))] ;
-        pc(i) = plot(pT+offset(i)*ones(size(pT)),pQ(2,:,i),'-','color',c(i,:),'linewidth',2) ;
+        pc(i) = plot(pT+offset(i)*ones(size(pT)),pQ(2,:,i),'-','color',c(i,:),'linewidth',lw(i)) ;
 %         pp(i) = patch(patch_x,patch_PQy,c(i,:),'facealpha',0.2,'linestyle','none') ;
         pe(i) = errorbar(pT+offset(i)*ones(size(pT)),pQ(2,:,i),pQ(2,:,i)-pQ(1,:,i),pQ(3,:,i)-pQ(2,:,i),'color',c(i,:),'linestyle','none') ;
     end
@@ -246,19 +247,25 @@ if (strcmpi(compTime,'y'))
     pect = zeros(4,1) ;
     pp = [1,2,4] ;
     leg_string = {'RAGS','Na\"{i}ve A*','Sampled A*','Greedy'} ;
+    lw = [3,2,3,2] ;
     for i = 1:numel(pp)
         if (i == 2)
             [hax,pct(pp(i)),pct(pp(i)+1)] = plotyy(pT,pCmean(:,pp(i)),pT,pCmean(:,3)) ;
             pect(pp(i)+1) = errorbar(pT,pCmean(:,pp(i)+1),pCmean(:,pp(i)+1)-pCL(:,pp(i)+1),pCU(:,pp(i)+1)-pCmean(:,pp(i)+1),'color',c(pp(i)+1,:),'linestyle','none') ;
-            set(pct(pp(i)),'linestyle','-','color',c(pp(i),:),'linewidth',2) ;
-            set(pct(pp(i)+1),'linestyle','-','color',c(pp(i)+1,:),'linewidth',2) ;
+            set(pct(pp(i)),'linestyle','-','color',c(pp(i),:),'linewidth',lw(pp(i))) ;
+            set(pct(pp(i)+1),'linestyle','-','color',c(pp(i)+1,:),'linewidth',lw(pp(i)+1)) ;
         else
-            pct(pp(i)) = plot(pT,pCmean(:,pp(i)),'-','color',c(pp(i),:),'linewidth',2) ;
+            pct(pp(i)) = plot(pT,pCmean(:,pp(i)),'-','color',c(pp(i),:),'linewidth',lw(pp(i))) ;
         end
         pect(pp(i)) = errorbar(pT,pCmean(:,pp(i)),pCmean(:,pp(i))-pCL(:,pp(i)),pCU(:,pp(i))-pCmean(:,pp(i)),'color',c(pp(i),:),'linestyle','none') ;
     end
-    set(hax(1),'xlim',[0.4975 0.7525],'ylim',[0 .1],'ycolor','k') ;
-    set(hax(2),'xlim',[0.4975 0.7525],'ylim',[0 5],'ycolor','k') ;
+    if mV == 5
+        set(hax(1),'xlim',[0.4975 0.7525],'ylim',[0 .1],'ycolor','k','ytick',0:0.02:0.1) ;
+        set(hax(2),'xlim',[0.4975 0.7525],'ylim',[0 5],'ycolor','k','ytick',0:5) ;
+    elseif mV == 10
+        set(hax(1),'xlim',[0.4975 0.7525],'ylim',[0 1],'ycolor','k','ytick',0:0.2:1) ;
+        set(hax(2),'xlim',[0.4975 0.7525],'ylim',[0 64],'ycolor','k','ytick',0:20:60) ;
+    end
     legend(pct,leg_string,'interpreter','latex','location','northwest','fontsize',fs) ;
     set(hax(1),'fontsize',fs,'fontname',fn)
     set(hax(2),'fontsize',fs,'fontname',fn)

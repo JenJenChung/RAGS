@@ -15,8 +15,5 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -g -Wall")
 add_executable(test_path_comparisons main_Planner_Comparisons.cpp)
 target_link_libraries( test_path_comparisons ${Boost_LIBRARIES} )
 
-#add_executable(test_path_comparisons_P_70_mV_5 main_Planner_Comparisons.cpp)
-#target_link_libraries( test_path_comparisons_P_70_mV_5 ${Boost_LIBRARIES} )
-
-#add_executable(test_ND_set main_Log_ND_Set.cpp)
-#target_link_libraries( test_ND_set ${Boost_LIBRARIES} )
+add_executable(test_ND_set_binaries main_Log_ND_Set.cpp)
+target_link_libraries( test_ND_set_binaries ${Boost_LIBRARIES} )

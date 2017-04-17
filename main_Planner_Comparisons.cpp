@@ -1,5 +1,5 @@
 #ifndef PTHRESH
-#define PTHRESH 0.65
+#define PTHRESH 0.60
 #endif
 
 enum searchType {ASTAR, DIJKSTRA} ; // BREADTH, DEPTH
@@ -44,9 +44,9 @@ typedef unsigned long int ULONG ;
 #include "GraphGeneration.h"
 
 int main(){
-  int numGraphs = 64 ;
-  int trialNum = 63 ;
-  int varMax = 10 ;
+  int numGraphs = 1 ;
+  int trialNum = 0 ;
+  int varMax = 15 ;
 	
   int buffSize = 100 ;
   char fileDir[buffSize] ;
@@ -60,11 +60,11 @@ int main(){
   system(mkdir) ;
   
   // Generate new graphs ***************************************************************************
-  bool newGraphs = false ;
+  bool newGraphs = true ;
   bool newEdgeVarsOnly = false ;
   if (newGraphs){
     // Graph parameters
-    int numVerts = 100 ;
+    int numVerts = 350 ;
     double x = 100 ;
     double y = 100 ;
     int meanMax = 100 ;
@@ -177,9 +177,9 @@ int main(){
     
     // START: Execute planners *********************************************************************
     // Define planning task
-    XY start = vertices[0] ; // with random 100 graph: vertices0.txt, edges0.txt
-    XY goal = vertices[99] ; // with random 100 graph: vertices0.txt, edges0.txt
-    size_t loops = 100 ;
+    XY start = vertices[0] ; // with random graph: vertices0.txt, edges0.txt
+    XY goal = vertices[vertices.size()-1] ; // with random graph: vertices0.txt, edges0.txt
+    size_t loops = 1 ;
     ExecutePlanners(fileDir, trialNum, vertices, edges, cost_distributions, start, goal, generator, loops) ;
     // END: Execute planners ***********************************************************************
     
