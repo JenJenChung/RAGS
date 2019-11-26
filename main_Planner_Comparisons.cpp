@@ -46,13 +46,13 @@ typedef unsigned long int ULONG ;
 int main(){
   int numGraphs = 1 ;
   int trialNum = 0 ;
-  int varMax = 15 ;
+  int sigMax = 15 ;
 	
   int buffSize = 100 ;
   char fileDir[buffSize] ;
-  sprintf(fileDir,"logs/maxVar_%d/pThresh_%.2f",varMax,PTHRESH) ;
+  sprintf(fileDir,"logs/maxSig_%d/pThresh_%.2f",sigMax,PTHRESH) ;
   char configDir[buffSize] ;
-  sprintf(configDir,"config_files/maxVar_%d",varMax) ;
+  sprintf(configDir,"config_files/maxSig_%d",sigMax) ;
   char mkdir[buffSize] ;
   sprintf(mkdir,"mkdir -p %s",fileDir) ;
   system(mkdir) ;
@@ -61,7 +61,7 @@ int main(){
   
   // Generate new graphs ***************************************************************************
   bool newGraphs = true ;
-  bool newEdgeVarsOnly = false ;
+  bool newEdgeSigsOnly = false ;
   if (newGraphs){
     // Graph parameters
     int numVerts = 350 ;
@@ -70,9 +70,9 @@ int main(){
     int meanMax = 100 ;
     int i = 0 ;
     while (i < numGraphs){
-      if (newEdgeVarsOnly){
+      if (newEdgeSigsOnly){
         char eFile[buffSize] ;
-        sprintf(eFile,"config_files/maxVar_5/edges%d.txt",i) ;
+        sprintf(eFile,"config_files/maxSig_%d/edges%d.txt",sigMax,i) ;
         ifstream eFileRead(eFile) ;
         if (!eFileRead.is_open()){
           cout << "\nFile: " << eFile << " not found, skipping.\n" ;
@@ -99,13 +99,13 @@ int main(){
 	      eFileWrite.open(eFileName.str().c_str()) ;
         
 	      for (size_t j = 0; j < ee.size(); j++){
-				  ee[j][3] = (double)(rand() % (varMax*100))/100.0 ; // 0.0 ; *** EDGE COST VARIANCE ***
+				  ee[j][3] = (double)(rand() % (sigMax*100))/100.0 ; // 0.0 ; *** EDGE COST STANDARD DEVIATION ***
 				  eFileWrite << ee[j][0] << "," << ee[j][1] << "," << ee[j][2] << "," << ee[j][3] << "\n" ;
 			  }
 			  eFileWrite.close() ;
       }
       else{
-        GenerateGraph(configDir, i, numVerts, x, y, meanMax, varMax) ;
+        GenerateGraph(configDir, i, numVerts, x, y, meanMax, sigMax) ;
       }
       i++ ;
     }

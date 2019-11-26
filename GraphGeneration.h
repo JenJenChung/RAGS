@@ -11,7 +11,7 @@ double EuclideanDistance(vector<double> v1, vector<double> v2)
 }
 
 // Connect vertices within specified radius
-void RadiusConnect(char * cDir, int graphNum, vector< vector<double> > vertices, double radius, int meanMax, int varMax)
+void RadiusConnect(char * cDir, int graphNum, vector< vector<double> > vertices, double radius, int meanMax, int sigMax)
 {
 	srand(graphNum+1);
 	vector< vector<double> > edges(pow(vertices.size(),2), vector<double>(4)) ;
@@ -28,7 +28,7 @@ void RadiusConnect(char * cDir, int graphNum, vector< vector<double> > vertices,
 				edges[k][0] = (double)i ;
 				edges[k][1] = (double)j ;
 				edges[k][2] = diff + (double)(rand() % (meanMax*100))/100.0 ;
-				edges[k][3] = (double)(rand() % (varMax*100))/100.0 ; // 0.0 ; *** EDGE COST VARIANCE ***
+				edges[k][3] = (double)(rand() % (sigMax*100))/100.0 ; // 0.0 ; *** EDGE COST STANDARD DEVIATION ***
 				k++ ;
 			}
 		}
@@ -111,14 +111,14 @@ void GenerateVertices(char * cDir, int graphNum, int numVerts, double x, double 
 	radius = sqrt((6.0/PI)*x*y*(log((double)numVerts)/(double)numVerts)) ;
 }
 
-void GenerateGraph(char * cDir, int graphNum, int numVerts, double x, double y, int meanMax, int varMax){
+void GenerateGraph(char * cDir, int graphNum, int numVerts, double x, double y, int meanMax, int sigMax){
 //	cout << "Generating random vertices in " << x << " by " << y << "\n" ;
 	double radius ;
   vector< vector< double > > vertices(numVerts, vector<double>(2));
 
   GenerateVertices(cDir, graphNum, numVerts, x, y, radius, vertices) ;
 //	cout << "Connecting with radius " << radius << endl;
-	RadiusConnect(cDir, graphNum, vertices, radius, meanMax, varMax);
+	RadiusConnect(cDir, graphNum, vertices, radius, meanMax, sigMax);
 }
 
 #endif // GRAPH_GEN_H_

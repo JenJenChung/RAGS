@@ -226,7 +226,7 @@ int main(){
 	// For A* search
 	vector< vector<double> > Astar_costs = cost_distributions ;
 	for (ULONG i = 0; i < Astar_costs.size(); i++)
-	  Astar_costs[i][1] = 0.0 ; // variance not considered in Astar planner
+	  Astar_costs[i][1] = 0.0 ; // standard deviation not considered in Astar planner
 	
 	// Create RAGS object
 	pathOut pOut = BEST ;
@@ -382,7 +382,7 @@ int main(){
 	for (ULONG i = 0; i < true_costs.size(); i++){
 	  vector<double> c ;
 	  c.push_back(true_costs[i]) ;
-	  c.push_back(0.0) ; // variance not considered in Astar planner
+	  c.push_back(0.0) ; // standard deviation not considered in Astar planner
 	  true_costs_with_std.push_back(c) ;
   }
   

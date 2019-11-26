@@ -168,7 +168,7 @@ bool RAGS::InitialiseNDSet(Vertex* start, Vertex* goal, XY &s){
     itsNDSet.push_back(GSPaths[i]->ReverseList(0)) ;
 	
   for (ULONG i = 0; i < (ULONG)itsNDSet.size(); i++)
-    itsNDSet[i]->SetCTG(GSPaths[i]->GetMeanCost(),GSPaths[i]->GetVarCost()) ;
+    itsNDSet[i]->SetCTG(GSPaths[i]->GetMeanCost(),GSPaths[i]->GetSigCost()) ;
   SetInitialVert(itsNDSet[0]->GetVertex()) ;
   
   return pFound ;
@@ -487,33 +487,33 @@ void RAGS::NodeWriteBinary(ofstream &fs, Node * n, int nodeNum){
   
   // Get all member variable sizes
   double mC = n->GetMeanCost() ;
-  double vC = n->GetVarCost() ;
+  double sC = n->GetSigCost() ;
   ULONG d = n->GetDepth() ;
   double h = n->GetHeuristic() ;
   double mCTG = n->GetMeanCTG() ;
-  double vCTG = n->GetVarCTG() ;
+  double sCTG = n->GetSigCTG() ;
   
   // Convert all to const char *
   char * p_nodeNum = reinterpret_cast<char *>(&nodeNum) ;
   char * p_vInd = reinterpret_cast<char *>(&vInd) ;
   char * p_pInd = reinterpret_cast<char *>(&pInd) ;
   char * p_mC = reinterpret_cast<char *>(&mC) ;
-  char * p_vC = reinterpret_cast<char *>(&vC) ;
+  char * p_sC = reinterpret_cast<char *>(&sC) ;
   char * p_d = reinterpret_cast<char *>(&d) ;
   char * p_h = reinterpret_cast<char *>(&h) ;
   char * p_mCTG = reinterpret_cast<char *>(&mCTG) ;
-  char * p_vCTG = reinterpret_cast<char *>(&vCTG) ;
+  char * p_sCTG = reinterpret_cast<char *>(&sCTG) ;
   
   // Write all variables to binary
   fs.write(p_nodeNum,sizeof(nodeNum)) ;
   fs.write(p_vInd,sizeof(vInd)) ;
   fs.write(p_pInd,sizeof(pInd)) ;
   fs.write(p_mC,sizeof(mC)) ;
-  fs.write(p_vC,sizeof(vC)) ;
+  fs.write(p_sC,sizeof(sC)) ;
   fs.write(p_d,sizeof(d)) ;
   fs.write(p_h,sizeof(h)) ;
   fs.write(p_mCTG,sizeof(mCTG)) ;
-  fs.write(p_vCTG,sizeof(vCTG)) ;
+  fs.write(p_sCTG,sizeof(sCTG)) ;
 }
 
 void RAGS::NDSetReadBinary(ifstream &fs){
@@ -541,27 +541,27 @@ void RAGS::NDSetReadBinary(ifstream &fs){
         pNode = 0 ; // reset parent node
       
       // Allocate memory
-      double mC, vC, mCTG, vCTG, h ;
+      double mC, sC, mCTG, sCTG, h ;
       ULONG d  ;
       char * p_mC = reinterpret_cast<char *>(&mC) ;
-      char * p_vC = reinterpret_cast<char *>(&vC) ;
+      char * p_sC = reinterpret_cast<char *>(&sC) ;
       char * p_d = reinterpret_cast<char *>(&d) ;
       char * p_h = reinterpret_cast<char *>(&h) ;
       char * p_mCTG = reinterpret_cast<char *>(&mCTG) ;
-      char * p_vCTG = reinterpret_cast<char *>(&vCTG) ;
+      char * p_sCTG = reinterpret_cast<char *>(&sCTG) ;
       fs.read(p_mC,sizeof(mC)) ;
-      fs.read(p_vC,sizeof(vC)) ;
+      fs.read(p_sC,sizeof(sC)) ;
       fs.read(p_d,sizeof(d)) ;
       fs.read(p_h,sizeof(h)) ;
       fs.read(p_mCTG,sizeof(mCTG)) ;
-      fs.read(p_vCTG,sizeof(vCTG)) ;
+      fs.read(p_sCTG,sizeof(sCTG)) ;
       
       n->SetMeanCost(mC) ;
-      n->SetVarCost(vC) ;
+      n->SetSigCost(sC) ;
       n->SetDepth(d) ;
       n->SetHeuristic(h) ;
       n->SetMeanCTG(mCTG) ;
-      n->SetVarCTG(vCTG) ;
+      n->SetSigCTG(sCTG) ;
       n->SetParent(pNode) ;
       
       pNode = n ; // assign as new parent node
@@ -605,21 +605,21 @@ double RAGS::ComputeImprovementProbability(Vertex * A, Vertex * B)
 
   double c_A0 = A->GetCTC() ;
   double c_B0 = B->GetCTC() ;
-  double max_3sig = ANodes[0]->GetMeanCTG() + 3*ANodes[0]->GetVarCTG() ;
-  double min_3sig = ANodes[0]->GetMeanCTG() - 3*ANodes[0]->GetVarCTG() ;
+  double max_3sig = ANodes[0]->GetMeanCTG() + 3*ANodes[0]->GetSigCTG() ;
+  double min_3sig = ANodes[0]->GetMeanCTG() - 3*ANodes[0]->GetSigCTG() ;
   for (unsigned i = 0; i < ANodes.size(); i++)
   {
-    if (max_3sig < ANodes[i]->GetMeanCTG()+3*ANodes[i]->GetVarCTG())
-      max_3sig = ANodes[i]->GetMeanCTG()+3*ANodes[i]->GetVarCTG() ;
-    if (min_3sig > ANodes[i]->GetMeanCTG()-3*ANodes[i]->GetVarCTG())
-      min_3sig = ANodes[i]->GetMeanCTG()-3*ANodes[i]->GetVarCTG() ;
+    if (max_3sig < ANodes[i]->GetMeanCTG()+3*ANodes[i]->GetSigCTG())
+      max_3sig = ANodes[i]->GetMeanCTG()+3*ANodes[i]->GetSigCTG() ;
+    if (min_3sig > ANodes[i]->GetMeanCTG()-3*ANodes[i]->GetSigCTG())
+      min_3sig = ANodes[i]->GetMeanCTG()-3*ANodes[i]->GetSigCTG() ;
   }
   for (unsigned i = 0; i < BNodes.size(); i++)
   {
-    if (max_3sig < BNodes[i]->GetMeanCTG()+3*BNodes[i]->GetVarCTG())
-      max_3sig = BNodes[i]->GetMeanCTG()+3*BNodes[i]->GetVarCTG() ;
-    if (min_3sig > BNodes[i]->GetMeanCTG()-3*BNodes[i]->GetVarCTG())
-      min_3sig = BNodes[i]->GetMeanCTG()-3*BNodes[i]->GetVarCTG() ;
+    if (max_3sig < BNodes[i]->GetMeanCTG()+3*BNodes[i]->GetSigCTG())
+      max_3sig = BNodes[i]->GetMeanCTG()+3*BNodes[i]->GetSigCTG() ;
+    if (min_3sig > BNodes[i]->GetMeanCTG()-3*BNodes[i]->GetSigCTG())
+      min_3sig = BNodes[i]->GetMeanCTG()-3*BNodes[i]->GetSigCTG() ;
   }
 
   // If code is taking too long, change n to a smaller value
@@ -635,13 +635,13 @@ double RAGS::ComputeImprovementProbability(Vertex * A, Vertex * B)
     for (unsigned i = 0; i < ANodes.size(); i++)
     {
       double mu_Ai = ANodes[i]->GetMeanCTG() ;
-      double sig_Ai = ANodes[i]->GetVarCTG() ;
+      double sig_Ai = ANodes[i]->GetSigCTG() ;
       double p_cA1 = (1/(sig_Ai*sqrt(2*PI)))*exp(-(pow(x[k]-mu_Ai,2))/(2*pow(sig_Ai,2))) ;
       double p_cA2 = 1.0 ;
       for (unsigned j = 0; j < ANodes.size(); j++)
       {
         double mu_Aj = ANodes[j]->GetMeanCTG() ;
-        double sig_Aj = ANodes[j]->GetVarCTG() ;
+        double sig_Aj = ANodes[j]->GetSigCTG() ;
         if (j != i)
 	        p_cA2 *= 0.5*erfc((x[k]-mu_Aj)/(sig_Aj*sqrt(2))) ;
       }
@@ -651,7 +651,7 @@ double RAGS::ComputeImprovementProbability(Vertex * A, Vertex * B)
     for (unsigned i = 0; i < BNodes.size(); i++)
     {
       double mu_Bi = BNodes[i]->GetMeanCTG() ;
-      double sig_Bi = BNodes[i]->GetVarCTG() ;
+      double sig_Bi = BNodes[i]->GetSigCTG() ;
       p_cBi *= 0.5*erfc((x[k]-(c_B0-c_A0)-mu_Bi)/(sig_Bi*sqrt(2))) ;
     }
     pImprove += (p_cAi)*(1-p_cBi)*dx ;

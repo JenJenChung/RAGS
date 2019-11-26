@@ -29,7 +29,7 @@ class CompareNode{
       if (COMPARE == RAGSCOMPARE){
         double n1Cost = n1->GetMeanCost() ;
         double n2Cost = n2->GetMeanCost() ;
-        double thresh = n1Cost + sqrt(2.0)*sqrt(pow(n1->GetVarCost(),2) + pow(n2->GetVarCost(),2))*eConst ;
+        double thresh = n1Cost + sqrt(2.0)*sqrt(pow(n1->GetSigCost(),2) + pow(n2->GetSigCost(),2))*eConst ;
         return (n2Cost < thresh) ;
       }
       else{
@@ -129,14 +129,14 @@ bool Queue::CompareNodes(const Node * n1, const Node * n2) const
 	// out: Is n1 worse than or equal to n2? Does n2 dominate n1?
   double n1Cost = n1->GetMeanCost() ;
   double n2Cost = n2->GetMeanCost() ;
-//  return (n1Cost >= n2Cost && n1->GetVarCost() >= n2->GetVarCost()) ; // old domination metric
-  /*	if (n1Cost > n2Cost && n1->GetVarCost() > n2->GetVarCost())
+//  return (n1Cost >= n2Cost && n1->GetSigCost() >= n2->GetSigCost()) ; // old domination metric
+  /*	if (n1Cost > n2Cost && n1->GetSigCost() > n2->GetSigCost())
     return true ;
-  else if (n2Cost > n1Cost && n2->GetVarCost() > n1->GetVarCost())
+  else if (n2Cost > n1Cost && n2->GetSigCost() > n1->GetSigCost())
     return false ;
   else
     return (n1Cost > n2Cost) ;*/
-  double thresh = n1Cost + sqrt(2.0)*sqrt(pow(n1->GetVarCost(),2) + pow(n2->GetVarCost(),2))*eConst ;
+  double thresh = n1Cost + sqrt(2.0)*sqrt(pow(n1->GetSigCost(),2) + pow(n2->GetSigCost(),2))*eConst ;
   return (n2Cost < thresh) ; // does n2 dominate n1?
 }
 

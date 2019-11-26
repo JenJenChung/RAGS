@@ -176,9 +176,9 @@ Edge ** Graph::GenerateEdges(vector<edge> &edges, vector< vector<double> > &cost
     Vertex * v1 = itsVertices[(ULONG)edges[i].first] ;
     Vertex * v2 = itsVertices[(ULONG)edges[i].second] ;
     double cost = cost_distribution[i][0] ;
-    double var = cost_distribution[i][1] ;
+    double sig = cost_distribution[i][1] ;
 
-    allEdges[i] = new Edge(v1, v2, cost, var) ;
+    allEdges[i] = new Edge(v1, v2, cost, sig) ;
   }
 
   return allEdges ;

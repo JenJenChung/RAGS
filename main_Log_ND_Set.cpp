@@ -45,13 +45,13 @@ typedef unsigned long int ULONG ;
 
 int main(){
   int trialNum = 0 ;
-  int varMax = 20 ;
+  int sigMax = 20 ;
 	
   int buffSize = 100 ;
   char fileDir[buffSize] ;
-  sprintf(fileDir,"logs/maxVar_%d/pThresh_%.2f",varMax,PTHRESH) ;
+  sprintf(fileDir,"logs/maxSig_%d/pThresh_%.2f",sigMax,PTHRESH) ;
   char configDir[buffSize] ;
-  sprintf(configDir,"config_files/maxVar_%d",varMax) ;
+  sprintf(configDir,"config_files/maxSig_%d",sigMax) ;
   char mkdir[buffSize] ;
   sprintf(mkdir,"mkdir -p %s",fileDir) ;
   system(mkdir) ;

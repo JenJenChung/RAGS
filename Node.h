@@ -20,8 +20,8 @@ class Node
 {
 	public:
 		Node(Vertex * vertex):
-		  itsVertex(vertex), itsParent(0), itsMeanCost(0.0), itsVarCost(0.0), itsDepth(0),
-		  itsHeuristic(0.0), itsMeanCTG(0.0), itsVarCTG(0.0) {}
+		  itsVertex(vertex), itsParent(0), itsMeanCost(0.0), itsSigCost(0.0), itsDepth(0),
+		  itsHeuristic(0.0), itsMeanCTG(0.0), itsSigCTG(0.0) {}
 		
 		Node(Vertex * vertex, nodeType n):
 		itsVertex(vertex), itsParent(0), itsHeuristic(0.0)
@@ -30,25 +30,25 @@ class Node
 	    {
 		    case SOURCE:
 			    itsMeanCost = 0.0 ;
-			    itsVarCost = 0.0 ;
+			    itsSigCost = 0.0 ;
 			    itsDepth = 0.0 ;
 			    itsMeanCTG = 0.0 ;
 			    break ;
 		    default:
 			    itsMeanCost = DBL_MAX ;
-			    itsVarCost = DBL_MAX ;
+			    itsSigCost = DBL_MAX ;
 			    itsDepth = ULONG_MAX ;
 			    itsMeanCTG = DBL_MAX ;
-			    itsVarCTG = DBL_MAX ;
+			    itsSigCTG = DBL_MAX ;
 	    }
     }
     
 		Node(Node * parent, Edge * edge):
-		itsParent(parent), itsHeuristic(0.0), itsMeanCTG(0.0), itsVarCTG(0.0)
+		itsParent(parent), itsHeuristic(0.0), itsMeanCTG(0.0), itsSigCTG(0.0)
 		{
 	    itsVertex = edge->GetVertex2() ;
 	    itsMeanCost = itsParent->GetMeanCost() + edge->GetMeanSearch() ;
-	    itsVarCost = itsParent->GetVarCost() + edge->GetVarSearch() ;
+	    itsSigCost = itsParent->GetSigCost() + edge->GetSigSearch() ;
 	    itsDepth = itsParent->GetDepth() + 1 ;
     }
     
@@ -58,8 +58,8 @@ class Node
 		void SetParent(Node * parent) {itsParent = parent ;}
 		double GetMeanCost() const {return itsMeanCost ;}
 		void SetMeanCost(double cost) {itsMeanCost = cost ;}
-		double GetVarCost() const {return itsVarCost ;}
-		void SetVarCost(double var) {itsVarCost = var ;}
+		double GetSigCost() const {return itsSigCost ;}
+		void SetSigCost(double sig) {itsSigCost = sig ;}
 		Vertex * GetVertex() const {return itsVertex ;}
 		void SetVertex(Vertex * vertex) {itsVertex = vertex ;}
 		ULONG GetDepth() const {return itsDepth ;}
@@ -68,29 +68,29 @@ class Node
 		void SetHeuristic(double h) {itsHeuristic = h ;}
 		double GetMeanCTG() const {return itsMeanCTG ;}
 		void SetMeanCTG(double mCTG){itsMeanCTG = mCTG ;}
-		double GetVarCTG() const {return itsVarCTG ;}
-		void SetVarCTG(double vCTG){itsVarCTG = vCTG ;}
+		double GetSigCTG() const {return itsSigCTG ;}
+		void SetSigCTG(double vCTG){itsSigCTG = vCTG ;}
 		
 		void DisplayPath() ;
 		Node * ReverseList(Node * itsChild) ;
-		void SetCTG(double totalMean, double totalVar) ;
+		void SetCTG(double totalMean, double totalSig) ;
     
 	private:
 		Vertex * itsVertex ;
 		Node * itsParent ;
 		double itsMeanCost ;
-		double itsVarCost ;
+		double itsSigCost ;
 		ULONG itsDepth ;
 		double itsHeuristic ;
 		double itsMeanCTG ;
-		double itsVarCTG ;
+		double itsSigCTG ;
 } ;
 
 void Node::DisplayPath()
 {
   cout << "Vertex: (" << itsVertex->GetX() << "," << itsVertex->GetY() << ")\n" ;
-  cout << "Mean cost-to-come: " << itsMeanCost << ", " << "variance: " << itsVarCost << endl ;
-  cout << "Mean cost-to-go: " << itsMeanCTG << ", " << "variance: " << itsVarCTG << endl ;
+  cout << "Mean cost-to-come: " << itsMeanCost << ", " << "standard deviation: " << itsSigCost << endl ;
+  cout << "Mean cost-to-go: " << itsMeanCTG << ", " << "standard deviation: " << itsSigCTG << endl ;
 
   if (itsParent)
     itsParent->DisplayPath() ;
@@ -100,7 +100,7 @@ Node * Node::ReverseList(Node * itsChild) // Can cause memleak if returned node 
 {
   Node * itsParentR = new Node(GetVertex()) ;
   itsParentR->SetMeanCost(GetMeanCost()) ;
-  itsParentR->SetVarCost(GetVarCost()) ;
+  itsParentR->SetSigCost(GetSigCost()) ;
   itsParentR->SetParent(itsChild) ;
 
   if (GetParent())
@@ -112,13 +112,13 @@ Node * Node::ReverseList(Node * itsChild) // Can cause memleak if returned node 
     return itsParentR ;
 }
 
-void Node::SetCTG(double totalMean, double totalVar)
+void Node::SetCTG(double totalMean, double totalSig)
 {
   itsMeanCTG = totalMean - itsMeanCost ;
-  itsVarCTG = totalVar - itsVarCost ;
+  itsSigCTG = totalSig - itsSigCost ;
 
   if (itsParent)
-    itsParent->SetCTG(totalMean, totalVar) ;
+    itsParent->SetCTG(totalMean, totalSig) ;
 }
 
 #endif // NODE_H_
